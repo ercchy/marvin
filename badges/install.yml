@@ -8,6 +8,7 @@
   vars:
     badges_venv: "/opt/badges_venv/"
   vars_files:
+  - vars/defaults.yml
   - vars/credentials_${host}.yml
   tasks:
 
