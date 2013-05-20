@@ -22,13 +22,19 @@
     git: repo=https://github.com/p2pu/badges.git dest=/opt/badges version=HEAD
 
   - name: update badges dependencies in virtual environment
-    pip: requirements=/opt/badges/badges/requirements.txt virtualenv=$badges_venv 
+    pip: requirements=/opt/badges/badges/requirements.txt virtualenv=$badges_venv
+
+  - name: run migrate
+    command: $badges_venv/bin/python /opt/badges/badges/manage.py migrate --noinput
 
   - name: run collectstatic
     command: $badges_venv/bin/python /opt/badges/badges/manage.py collectstatic --noinput
 
+  - name: run compress
+    command: $badges_venv/bin/python /opt/badges/badges/manage.py compress --force
+
   - name: update badges settings_local.py
-    template: src=templates/opt_badges_badges_settings_local.py.j2 dest=/opt/badges/badges/badges/settings_local.py mode=0640 owner=badges group=www-data
+    template: src=templates/opt_badges_badges_badges_settings_local.py.j2 dest=/opt/badges/badges/badges/settings_local.py mode=0640 owner=badges group=www-data
 
   - name: restart apache
     service: name=apache2 state=restarted

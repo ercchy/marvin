@@ -110,7 +110,9 @@
   tasks:
 
   - name: create postgresql database
-    postgresql_db: encoding=utf8 name=$badges_db_name state=present login_user=$badges_db_user login_password=$badges_db_password login_host=127.0.0.1 template=template0
+    postgresql_db: name=$badges_db_name login_user=$badges_db_user login_password=$badges_db_password login_host=127.0.0.1 template=template0
+    #postgresql_db: encoding=utf8 lc_collate=en_US.UTF-8 lc_ctype=en_US.UTF-8 name=$badges_db_name login_user=$badges_db_user login_password=$badges_db_password login_host=127.0.0.1 template=template0
+    #postgresql_db: db=acme encoding='UTF-8' lc_collate='de_DE.UTF-8' lc_ctype='de_DE.UTF-8' template='template0'
 
   - name: configure badges wsgi script
     template: src=templates/opt_badges_badges_badges_production.wsgi.j2 dest=/opt/badges/badges/badges/production.py
@@ -123,6 +125,9 @@
 
   - name: run collectstatic
     command: $badges_venv/bin/python /opt/badges/badges/manage.py collectstatic --noinput
+
+  - name: run compress
+    command: $badges_venv/bin/python /opt/badges/badges/manage.py compress --force
 
   - name: configure badges vhost
     template: src=templates/etc_apache2_sites-available_badges.j2 dest=/etc/apache2/sites-available/badges
