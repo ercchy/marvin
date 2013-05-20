@@ -34,7 +34,7 @@
     user: name=badges
 
   - name: check out badges code
-    git: repo=https://github.com/p2pu/badges.git dest=/opt/badges
+    git: repo=${badges_github_repository} dest=/opt/badges version=${badges_github_version}
 
   - name: init git submodule
     command: /usr/bin/env git submodule init chdir=/opt/badges

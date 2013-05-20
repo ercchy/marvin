@@ -8,6 +8,7 @@
   vars:
     badges_venv: "/opt/badges_venv/"
   vars_files:
+  - vars/defaults.yml
   - vars/credentials_${host}.yml
   tasks:
 
@@ -19,7 +20,7 @@
     command: /bin/tar czf /tmp/badges_files.tar.gz -C /opt/ badges
 
   - name: update badges code
-    git: repo=https://github.com/p2pu/badges.git dest=/opt/badges version=HEAD
+    git: repo=${badges_github_repository} dest=/opt/badges version=${badges_github_version}
 
   - name: update badges dependencies in virtual environment
     pip: requirements=/opt/badges/badges/requirements.txt virtualenv=$badges_venv
