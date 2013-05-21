@@ -1,9 +1,11 @@
 Jinja2==2.7
 MarkupSafe==0.15
 PyYAML==3.10
-ansible==1.1
+https://github.com/ansible/ansible/archive/devel.zip
 argparse==1.2.1
+boto==2.9.4
 distribute==0.6.34
+hashlib==20081119
 paramiko==1.10.1
 pycrypto==2.6
 wsgiref==0.1.2
