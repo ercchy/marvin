@@ -1,2 +1,3 @@
+badges_venv: "/opt/badges_venv/"
 badges_github_repository: "https://github.com/p2pu/badges.git"
 badges_github_version: HEAD

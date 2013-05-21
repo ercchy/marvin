@@ -5,13 +5,12 @@
 - hosts: $host
   user: $user
   sudo: yes
-  vars:
-    badges_venv: "/opt/badges_venv/"
-  vars_files:
-  - vars/defaults.yml
-  - vars/credentials_${host}.yml
-  tasks:
 
+  vars_files:
+  - vars/common.yml
+  - vars/credentials_${host}.yml
+
+  tasks:
   - name: stop apache
     service: name=apache2 state=stopped
     ignore_errors: yes

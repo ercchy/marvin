@@ -8,6 +8,7 @@
   sudo_user: postgres
   gather_facts: yes
   vars_files:
+  - vars/common.yml
   - vars/credentials_${host}.yml
   vars:
   - archive: backup_${host}_${archive_name}_${ansible_date_time.iso8601_micro}
@@ -35,3 +36,4 @@
 
   - name: copy archive to s3
     s3: bucket=${s3_bucket} path=${folder}.tgz state=present dest=${s3_path} ec2_access_key=${ec2_access_key} ec2_secret_key=${ec2_secret_key}
+
