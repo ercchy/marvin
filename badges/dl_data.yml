@@ -1,0 +1,37 @@
+---
+# This playbook downloads data to local machine.
+# pass the host and user as extra variables.
+
+- hosts: $host
+  user: $user
+  sudo: yes
+  sudo_user: postgres
+  gather_facts: yes
+  vars_files:
+  - vars/credentials_${host}.yml
+  vars:
+  - archive: backup_${host}_${archive_name}_${ansible_date_time.iso8601_micro}
+  - folder: /tmp/${archive}
+  - s3_bucket: p2pu-backup
+  - s3_path: /badges_p2pu_org/${archive}.tgz
+  tasks:
+  - name: create folder to hold data
+    shell: mkdir -p ${folder}
+
+  - name: dump all global objects
+    shell: pg_dumpall -g -U postgres > ${folder}/globals.sql
+
+  - name: dump schema of database
+    shell: pg_dump -Fp -s -v -f ${folder}/db-schema.sql -U postgres $badges_db_name
+
+  - name: dump contents of database
+    shell: pg_dump -Fc -v -f ${folder}/full.dump -U postgres $badges_db_name
+
+  - name: tar data
+    shell: tar czvf ${folder}.tgz ${folder} /opt/badges/badges/uploads /opt/badges/badges/static
+
+  - name: remove folder
+    shell: rm -rf ${folder}
+
+  - name: copy archive to s3
+    s3: bucket=${s3_bucket} path=${folder}.tgz state=present dest=${s3_path} ec2_access_key=${ec2_access_key} ec2_secret_key=${ec2_secret_key}
