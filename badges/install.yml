@@ -62,6 +62,9 @@
     - boto
     - hashlib
 
+  - name: copy s3get to server (required by ansible)
+    copy: src=./files/s3get.py dest=/opt/badges owner=badges group=badges mode=644
+
   - name: install virtualenv
     pip: name=$item
     with_items:    

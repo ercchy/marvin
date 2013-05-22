@@ -7,33 +7,53 @@
   sudo: yes
   sudo_user: postgres
   gather_facts: yes
+
   vars_files:
   - vars/common.yml
   - vars/credentials_${host}.yml
+
   vars:
-  - archive: backup_${host}_${archive_name}_${ansible_date_time.iso8601_micro}
-  - folder: /tmp/${archive}
-  - s3_bucket: p2pu-backup
-  - s3_path: /badges_p2pu_org/${archive}.tgz
+  - folder: /tmp/backup
+
   tasks:
   - name: create folder to hold data
-    shell: mkdir -p ${folder}
+    shell: mkdir -p ${folder}/db
 
   - name: dump all global objects
-    shell: pg_dumpall -g -U postgres > ${folder}/globals.sql
+    shell: pg_dumpall -g -U postgres > ${folder}/db/globals.sql
 
   - name: dump schema of database
-    shell: pg_dump -Fp -s -v -f ${folder}/db-schema.sql -U postgres $badges_db_name
+    shell: pg_dump -Fp -s -v -f ${folder}/db/db-schema.sql -U postgres $badges_db_name
 
   - name: dump contents of database
-    shell: pg_dump -Fc -v -f ${folder}/full.dump -U postgres $badges_db_name
+    shell: pg_dump -Fc -v -f ${folder}/db/full.dump -U postgres $badges_db_name
+
+
+# Run manage.py dumpdata
+- hosts: $host
+  user: $user
+  sudo: yes
+
+  vars_files:
+  - vars/common.yml
+  - vars/credentials_${host}.yml
+
+  vars:
+  - archive_file: backup_${host}_${archive_name}_${ansible_date_time.iso8601_micro}.tgz
+  - archive_path: /tmp/${archive_file}
+  - folder: /tmp/backup
+  - s3_bucket: p2pu-backup
+  - s3_path: /badges_p2pu_org/${archive_file}
+
+  tasks:
+  - name: run dumpdata
+    shell: $badges_venv/bin/python /opt/badges/badges/manage.py dumpdata > ${folder}/db/full.json
 
   - name: tar data
-    shell: tar czvf ${folder}.tgz ${folder} /opt/badges/badges/uploads /opt/badges/badges/static
+    shell: tar czvf ${archive_path} ${folder} /opt/badges/badges/uploads /opt/badges/badges/static
 
   - name: remove folder
     shell: rm -rf ${folder}
 
   - name: copy archive to s3
-    s3: bucket=${s3_bucket} path=${folder}.tgz state=present dest=${s3_path} ec2_access_key=${ec2_access_key} ec2_secret_key=${ec2_secret_key}
-
+    s3: bucket=${s3_bucket} path=${archive_path} state=present dest=${s3_path} ec2_access_key=${ec2_access_key} ec2_secret_key=${ec2_secret_key}

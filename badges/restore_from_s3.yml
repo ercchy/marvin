@@ -1,0 +1,29 @@
+---
+# This playbook downloads data to local machine.
+# pass the host and user as extra variables.
+
+- hosts: $host
+  user: $user
+  sudo: yes
+  #sudo_user: postgres
+  gather_facts: yes
+
+  vars_files:
+  - vars/common.yml
+  - vars/credentials_${host}.yml
+
+  vars:
+  - local_file: /tmp/${archive}
+  - untar_folder: /tmp/restore_at_${ansible_date_time.iso8601_micro}_from_${archive}
+  - s3_bucket: p2pu-backup
+  - s3_path: /badges_p2pu_org/${archive}
+
+  tasks:
+  - name: copy archive from s3
+    command: python /opt/badges/s3get.py ${ec2_access_key} ${ec2_secret_key} ${s3_bucket} ${s3_path} ${local_file}
+
+  - name: untar data
+    shell: mkdir -p ${untar_folder} && cd ${untar_folder} && tar xzvf ${local_file}
+
+  - name: restore uploads
+    shell: cp -pr ${untar_folder}/opt/badges/badges/uploads/* /opt/badges/badges/uploads
