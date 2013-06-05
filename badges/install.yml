@@ -29,6 +29,13 @@
     - libpq-dev
     - python-psycopg2
     - rake
+    - build-dep
+    - python-imaging
+
+  - name: create symlinks for imaging libraries
+    shell: ln -s /usr/lib/`uname -i`-linux-gnu/libfreetype.so /usr/lib/
+    shell: ln -s /usr/lib/`uname -i`-linux-gnu/libjpeg.so /usr/lib/
+    shell: ln -s /usr/lib/`uname -i`-linux-gnu/libz.so /usr/lib/
 
   - name: create badges user
     user: name=badges

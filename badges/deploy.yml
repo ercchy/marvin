@@ -18,8 +18,41 @@
   - name: backup badges directory
     command: /bin/tar czf /tmp/badges_files.tar.gz -C /opt/ badges
 
+  - name: backup uploads folder
+    command: mv /opt/badges/badges/uploads /opt
+
+  - name: remove current badges source code
+    command: rm -rf /opt/badges
+
   - name: update badges code
     git: repo=${badges_github_repository} dest=/opt/badges version=${badges_github_version}
+
+  - name: restore uploads folder
+    command: mv /opt/uploads /opt/badges/badges
+
+  - name: init git submodule
+    command: /usr/bin/env git submodule init chdir=/opt/badges
+
+  - name: git submodule update
+    command: /usr/bin/env git submodule update chdir=/opt/badges
+
+  - name: update permissions for badges directory
+    command: /bin/chown -R badges:badges /opt/badges
+
+  - name: create badges.log file
+    command: /usr/bin/touch /opt/badges/badges/badges/badges.log
+
+  - name: set permissions for badges.log
+    file: path=/opt/badges/badges/badges/badges.log state=file owner=badges group=www-data mode=0664
+
+  - name: update badges settings_local.py
+    template: src=templates/opt_badges_badges_badges_settings_local.py.j2 dest=/opt/badges/badges/badges/settings_local.py mode=0640 owner=badges group=www-data
+
+  - name: configure badges wsgi script
+    template: src=templates/opt_badges_badges_badges_production.wsgi.j2 dest=/opt/badges/badges/badges/production.py
+
+  - name: copy s3get to server (required by ansible)
+    copy: src=./files/s3get.py dest=/opt/badges owner=badges group=badges mode=644
 
   - name: update badges dependencies in virtual environment
     pip: requirements=/opt/badges/badges/requirements.txt virtualenv=$badges_venv
@@ -32,9 +65,6 @@
 
   - name: run compress
     command: $badges_venv/bin/python /opt/badges/badges/manage.py compress --force
-
-  - name: update badges settings_local.py
-    template: src=templates/opt_badges_badges_badges_settings_local.py.j2 dest=/opt/badges/badges/badges/settings_local.py mode=0640 owner=badges group=www-data
 
   - name: restart apache
     service: name=apache2 state=restarted
